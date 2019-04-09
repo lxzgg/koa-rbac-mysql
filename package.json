@@ -1,0 +1,17 @@
+{
+  "name": "koa-rbac-mysql",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lxzgg/koa-rbac-mysql.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lxzgg/koa-rbac-mysql/issues"
+  },
+  "homepage": "https://github.com/lxzgg/koa-rbac-mysql#readme"
+}
