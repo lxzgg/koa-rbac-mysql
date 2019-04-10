@@ -13,11 +13,11 @@ CREATE TABLE \`auth_admin_role\`  (
 DROP TABLE IF EXISTS \`auth_menu\`;
 CREATE TABLE \`auth_menu\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单名称',
-  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单的访问url',
-  \`icon\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单图标',
-  \`order\` int(11) NOT NULL DEFAULT 0 COMMENT '菜单排序',
-  \`parent_id\` int(11) NULL DEFAULT NULL COMMENT '父菜单id',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu name',
+  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu url',
+  \`icon\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu icon',
+  \`order\` int(11) NOT NULL DEFAULT 0 COMMENT 'menu sort',
+  \`parent_id\` int(11) NULL DEFAULT NULL COMMENT 'menu parentId',
   PRIMARY KEY (\`id\`) USING BTREE,
   INDEX \`IDX_PARENT\`(\`parent_id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -25,23 +25,23 @@ CREATE TABLE \`auth_menu\`  (
 DROP TABLE IF EXISTS \`auth_permission\`;
 CREATE TABLE \`auth_permission\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '权限名称',
-  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '路由',
-  \`resource_id\` int(11) NOT NULL COMMENT '所属资源ID',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'router name',
+  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'router url',
+  \`resource_id\` int(11) NOT NULL,
   PRIMARY KEY (\`id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS \`auth_resource\`;
 CREATE TABLE \`auth_resource\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资源名称,如:用户管理',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   PRIMARY KEY (\`id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS \`auth_role\`;
 CREATE TABLE \`auth_role\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'role name',
   PRIMARY KEY (\`id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
