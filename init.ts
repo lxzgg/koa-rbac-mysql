@@ -83,10 +83,11 @@ const opts: options = {
 }
 
 function init(accesses: Array<accesses>, {rebuildTable, synchronize, mysql}: options) {
+    if (!mysql.pool) {
+        throw new Error(`Mysql please use promise`)
+    }
 
-    const mysqlConfig = mysql.pool ? mysql.pool.config : mysql.config
-
-    if (!mysqlConfig.connectionConfig.multipleStatements) {
+    if (!mysql.pool.config.connectionConfig.multipleStatements) {
         throw new Error(`MySQL configuration options 'multipleStatements' must be true`)
     }
 
@@ -114,19 +115,21 @@ function init(accesses: Array<accesses>, {rebuildTable, synchronize, mysql}: opt
     return routes
 }
 
-async function execute(resources, permissions) {
+function execute(resources, permissions) {
+    let promise = Promise.resolve()
     if (opts.rebuildTable) {
-        await opts.mysql.query(initSQL)
+        promise = opts.mysql.query(initSQL)
     }
 
     if (opts.synchronize) {
-        opts.mysql.query(`
+        promise.then(() => {
+            return opts.mysql.query(`
                     DELETE FROM auth_resource;
                     DELETE FROM auth_permission;
                     ALTER TABLE auth_resource auto_increment = 1;
                     ALTER TABLE auth_permission auto_increment = 1;
-                    `,
-        ).then(() => {
+                    `)
+        }).then(() => {
             opts.mysql.query(`INSERT INTO auth_resource   (id, name)                VALUES ?;`, [resources])
             opts.mysql.query(`INSERT INTO auth_permission (id,NAME,url,resource_id) VALUES ?;`, [permissions])
         })
