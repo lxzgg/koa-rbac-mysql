@@ -91,8 +91,13 @@ function init(accesses, { rebuildTable, synchronize, mysql }) {
         resources.push([resources_id, access.name]);
         access.permissions.forEach(permission => {
             permission_id++;
-            routes.push(permission.url);
-            permissions.push([permission_id, permission.name, permission.url, resources_id]);
+            const url = permission.url;
+            const name = permission.name;
+            if (routes.includes(url)) {
+                throw new Error(`Duplicate route '${url}'`);
+            }
+            routes.push(url);
+            permissions.push([permission_id, name, url, resources_id]);
         });
     });
     execute(resources, permissions);
