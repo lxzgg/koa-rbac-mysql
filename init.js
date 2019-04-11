@@ -15,11 +15,11 @@ CREATE TABLE \`auth_admin_role\`  (
 DROP TABLE IF EXISTS \`auth_menu\`;
 CREATE TABLE \`auth_menu\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu name',
-  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu url',
-  \`icon\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu icon',
-  \`order\` int(11) NOT NULL DEFAULT 0 COMMENT 'menu sort',
-  \`parent_id\` int(11) NULL DEFAULT NULL COMMENT 'menu parentId',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单名',
+  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单路由地址',
+  \`icon\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '菜单图标',
+  \`order\` int(11) NOT NULL DEFAULT 0 COMMENT '菜单排序',
+  \`parent_id\` int(11) NOT NULL DEFAULT 0 COMMENT '父菜单ID',
   PRIMARY KEY (\`id\`) USING BTREE,
   INDEX \`IDX_PARENT\`(\`parent_id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -27,33 +27,19 @@ CREATE TABLE \`auth_menu\`  (
 DROP TABLE IF EXISTS \`auth_permission\`;
 CREATE TABLE \`auth_permission\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'router name',
-  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'router url',
-  \`resource_id\` int(11) NOT NULL,
-  PRIMARY KEY (\`id\`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
-DROP TABLE IF EXISTS \`auth_resource\`;
-CREATE TABLE \`auth_resource\`  (
-  \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '权限名',
+  \`url\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '路由地址',
+  \`resource\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '对应页面元素的显示隐藏',
+  \`menu_id\` int(11) NOT NULL COMMENT '对应菜单的ID',
   PRIMARY KEY (\`id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS \`auth_role\`;
 CREATE TABLE \`auth_role\`  (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
-  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'role name',
+  \`name\` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名',
   PRIMARY KEY (\`id\`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
-DROP TABLE IF EXISTS \`auth_role_menu\`;
-CREATE TABLE \`auth_role_menu\`  (
-  \`role_id\` int(11) NOT NULL,
-  \`menu_id\` int(11) NOT NULL,
-  PRIMARY KEY (\`role_id\`, \`menu_id\`) USING BTREE,
-  INDEX \`IDX_MENU\`(\`menu_id\`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS \`auth_role_permission\`;
 CREATE TABLE \`auth_role_permission\`  (
@@ -71,7 +57,7 @@ const opts = {
     synchronize: false,
     rebuildTable: false,
 };
-function init(accesses, { rebuildTable, synchronize, mysql }) {
+function init(menus, { rebuildTable, synchronize, mysql }) {
     if (!mysql.pool) {
         throw new Error(`Mysql please use promise`);
     }
@@ -81,45 +67,70 @@ function init(accesses, { rebuildTable, synchronize, mysql }) {
     opts.mysql = mysql;
     opts.synchronize = synchronize || opts.synchronize;
     opts.rebuildTable = rebuildTable || opts.rebuildTable;
-    const routes = [];
-    const resources = [];
-    const permissions = [];
-    let resources_id = 0;
-    let permission_id = 0;
-    accesses.forEach(access => {
-        resources_id++;
-        resources.push([resources_id, access.name]);
-        access.permissions.forEach(permission => {
-            permission_id++;
-            const url = permission.url;
-            const name = permission.name;
-            if (routes.includes(url)) {
-                throw new Error(`Duplicate route '${url}'`);
-            }
-            routes.push(url);
-            permissions.push([permission_id, name, url, resources_id]);
+    let menuId = 1;
+    let permissionId = 1;
+    const menuArray = [];
+    const permissionArray = [];
+    const root = { id: 1, name: 'root', url: '', icon: '', parentId: 0 };
+    menuArray.push(root);
+    // 遍历菜单目录
+    menus.forEach(menu => {
+        const menuDir = {
+            id: ++menuId,
+            name: menu.name,
+            url: menu.url || '',
+            icon: menu.icon || '',
+            parentId: root.id,
+        };
+        menuArray.push(menuDir);
+        // 遍历子菜单目录
+        menu.menus.forEach(subMenu => {
+            menuArray.push({
+                id: ++menuId,
+                name: subMenu.name,
+                url: subMenu.url || '',
+                icon: subMenu.icon || '',
+                parentId: menuDir.id,
+            });
+            // 遍历权限
+            subMenu.permissions.forEach(permission => {
+                permissionArray.push({
+                    id: permissionId++,
+                    name: permission.name,
+                    url: permission.url || '',
+                    resource: permission.resource,
+                    menuId: menuId,
+                });
+            });
         });
     });
-    execute(resources, permissions);
-    return routes;
+    execute(menuArray, permissionArray);
 }
 exports.init = init;
-function execute(resources, permissions) {
+function execute(menuArray, permissionArray) {
     let promise = Promise.resolve();
     if (opts.rebuildTable) {
         promise = opts.mysql.query(initSQL);
     }
     if (opts.synchronize) {
+        const menus = [];
+        const permissions = [];
+        menuArray.forEach(menu => {
+            menus.push([menu.id, menu.name, menu.url, menu.icon, menu.parentId]);
+        });
+        permissionArray.forEach(permission => {
+            permissions.push([permission.id, permission.name, permission.url, permission.resource, permission.menuId]);
+        });
         promise.then(() => {
             return opts.mysql.query(`
-                    DELETE FROM auth_resource;
+                    DELETE FROM auth_menu;
                     DELETE FROM auth_permission;
-                    ALTER TABLE auth_resource auto_increment = 1;
+                    ALTER TABLE auth_menu auto_increment = 1;
                     ALTER TABLE auth_permission auto_increment = 1;
                     `);
         }).then(() => {
-            opts.mysql.query(`INSERT INTO auth_resource   (id, name)                VALUES ?;`, [resources]);
-            opts.mysql.query(`INSERT INTO auth_permission (id,NAME,url,resource_id) VALUES ?;`, [permissions]);
+            opts.mysql.query(`INSERT INTO auth_menu       (id, name, url, icon, parent_id)   VALUES ?;`, [menus]);
+            opts.mysql.query(`INSERT INTO auth_permission (id, name, url, resource, menu_id) VALUES ?;`, [permissions]);
         });
     }
 }

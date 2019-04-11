@@ -1,8 +1,16 @@
-interface accesses {
+interface menus {
     name: string;
-    permissions: Array<{
+    url: string;
+    icon: string;
+    menus: Array<{
         name: string;
         url: string;
+        icon: string;
+        permissions: Array<{
+            name: string;
+            url: string;
+            resource: string;
+        }>;
     }>;
 }
 interface options {
@@ -10,5 +18,5 @@ interface options {
     synchronize?: boolean;
     rebuildTable?: boolean;
 }
-declare function init(accesses: Array<accesses>, { rebuildTable, synchronize, mysql }: options): any[];
+declare function init(menus: Array<menus>, { rebuildTable, synchronize, mysql }: options): void;
 export { init };
