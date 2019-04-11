@@ -59,19 +59,41 @@ const mysql = require('mysql2')
 const {init} = require('koa-rbac-mysql/init')
 
 // The array will be synchronized to the database
-const accesses = [
+const menus = [
   {
-    name: 'UserManage',
-    permissions: [
-      {name: 'user_add', url: '/user/add'},
-      {name: 'user_del', url: '/user/del'},
+    name: '目录1',
+    icon: '目录图标',
+    menus: [
+      {
+        name: '子目录1-1',
+        url: '页面路由',
+        permissions: [
+          {name: '权限1-1-1', url: '接口路由1-1-1', resource: '对应页面元素的显示隐藏1-1-1'},
+          {name: '权限1-1-2', url: '接口路由1-1-2', resource: '对应页面元素的显示隐藏1-1-2'},
+        ],
+      },
     ],
   },
   {
-    name: 'AdminManage',
-    permissions: [
-      {name: 'admin_get', url: '/admin/:id'},
-      {name: 'admin_del', url: '/admin/:id/del'},
+    name: '个人中心',
+    icon: 'icon-user',
+    menus: [
+      {
+        name: '用户管理',
+        url: '/user',
+        permissions: [
+          {name: '添加用户', url: '/user/add', resource: 'user_add'},
+          {name: '删除用户', url: '/user/del', resource: 'user_del'},
+        ],
+      },
+      {
+        name: '文章管理',
+        url: '/article',
+        permissions: [
+          {name: '添加文章', url: '/article/add', resource: 'article_add'},
+          {name: '删除文章', url: '/article/del', resource: 'article_del'},
+        ],
+      },
     ],
   },
 ]
@@ -86,7 +108,7 @@ const pool = mysql.createPool({
 }).promise()
 
 // Initialize mysql rbac permissions
-init(accesses, {
+init(menus, {
   // Inject data source
   mysql: pool,
   // Create table after deleting
